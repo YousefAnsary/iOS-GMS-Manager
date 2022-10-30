@@ -1,0 +1,14 @@
+{
+  "pins" : [
+    {
+      "identity" : "googlemaps-sp",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/YAtechnologies/GoogleMaps-SP.git",
+      "state" : {
+        "revision" : "9274ea5bb9108e8855fb5203e50701b060ad474a",
+        "version" : "7.0.0"
+      }
+    }
+  ],
+  "version" : 2
+}
