@@ -60,10 +60,17 @@ class GMSViewManagerImpl: NSObject, GMSViewManager {
     public func attachMap(toView view: UIView,
                           showCurrentLocationIndicator: Bool,
                           showLocateMeButton: Bool) {
-        let mapView = GMSMapView(frame: view.frame)
+        let mapView = GMSMapView()
+        mapView.delegate = self
         mapView.isMyLocationEnabled = showCurrentLocationIndicator
         mapView.settings.myLocationButton = showLocateMeButton
         view.addSubview(mapView)
+        NSLayoutConstraint.activate([
+            mapView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            mapView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            mapView.topAnchor.constraint(equalTo: view.topAnchor),
+            mapView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
+        ])
         self.mapView = mapView
         self.setupCustomMarker()
     }
@@ -158,6 +165,13 @@ extension GMSViewManagerImpl: GMSManagerLocationServiceDelegate {
 
 // MARK: - GMS Map View Delegate
 extension GMSViewManagerImpl: GMSMapViewDelegate {
+    
+    func mapViewSnapshotReady(_ mapView: GMSMapView) {
+        let camera = GMSCameraPosition.camera(withLatitude: self.defaultLocation.latitude,
+                                              longitude: self.defaultLocation.longitude,
+                                              zoom: self.defaultLocation.zoomLevel)
+        self.mapView?.camera = camera
+    }
     
     public func mapView(_ mapView: GMSMapView,
                         idleAt position: GMSCameraPosition) {
