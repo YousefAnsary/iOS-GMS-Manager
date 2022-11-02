@@ -7,6 +7,8 @@
 
 public protocol GMSViewManagerDelegate: AnyObject {
     func locationUpdate(failedWithError error: Error)
+    func mapView(idleAt position: Coordinates)
+    func markerDidTapped(withID id: String)
 }
 
 public extension GMSViewManagerDelegate {

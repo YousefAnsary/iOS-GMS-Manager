@@ -73,6 +73,10 @@ class GMSViewManagerImpl: NSObject, GMSViewManager {
             mapView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
         ])
         self.mapView = mapView
+        let camera = GMSCameraPosition.camera(withLatitude: self.defaultLocation.latitude,
+                                              longitude: self.defaultLocation.longitude,
+                                              zoom: self.defaultLocation.zoomLevel)
+        self.mapView?.camera = camera
         self.setupCustomMarker()
     }
     
@@ -136,9 +140,12 @@ class GMSViewManagerImpl: NSObject, GMSViewManager {
         let mapView = self.mapView,
         let markerImage = self.markerImage else { return }
         self.customMarkerImageView = UIImageView(image: markerImage)
+        self.customMarkerImageView?.translatesAutoresizingMaskIntoConstraints = false
         mapView.addSubview(customMarkerImageView!)
-        customMarkerImageView!.centerXAnchor.constraint(equalTo: mapView.centerXAnchor).isActive = true
-        customMarkerImageView!.centerYAnchor.constraint(equalTo: mapView.centerYAnchor).isActive = true
+        self.customMarkerImageView!.widthAnchor.constraint(equalToConstant: 25).isActive = true
+        self.customMarkerImageView!.heightAnchor.constraint(equalToConstant: 25).isActive = true
+        self.customMarkerImageView!.centerXAnchor.constraint(equalTo: mapView.centerXAnchor).isActive = true
+        self.customMarkerImageView!.centerYAnchor.constraint(equalTo: mapView.centerYAnchor).isActive = true
     }
 }
 
@@ -166,13 +173,6 @@ extension GMSViewManagerImpl: GMSManagerLocationServiceDelegate {
 
 // MARK: - GMS Map View Delegate
 extension GMSViewManagerImpl: GMSMapViewDelegate {
-    
-    func mapViewSnapshotReady(_ mapView: GMSMapView) {
-        let camera = GMSCameraPosition.camera(withLatitude: self.defaultLocation.latitude,
-                                              longitude: self.defaultLocation.longitude,
-                                              zoom: self.defaultLocation.zoomLevel)
-        self.mapView?.camera = camera
-    }
     
     public func mapView(_ mapView: GMSMapView,
                         idleAt position: GMSCameraPosition) {
