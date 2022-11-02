@@ -31,7 +31,7 @@ public protocol GMSViewManager {
     func setMapType(_ type: MapType)
     func configureStyle(fromJSONFile jsonURL: URL) throws
     func displayAndCenterCustomMarkersOnMap(_ markers: [Marker],
-                                                   markersCenteringPadding: Double)
+                                            markersCenteringPadding: Double)
     func displayCustomMarkersOnMap(_ markers: [Marker])
     func clearMarkers()
     func centerMapToShow(coordinates: [Coordinates], padding: CGFloat)
@@ -61,6 +61,7 @@ class GMSViewManagerImpl: NSObject, GMSViewManager {
                           showCurrentLocationIndicator: Bool,
                           showLocateMeButton: Bool) {
         let mapView = GMSMapView()
+        mapView.translatesAutoresizingMaskIntoConstraints = false
         mapView.delegate = self
         mapView.isMyLocationEnabled = showCurrentLocationIndicator
         mapView.settings.myLocationButton = showLocateMeButton
