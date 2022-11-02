@@ -21,6 +21,7 @@ public class GMSManager {
 }
 
 public protocol GMSViewManager {
+    var customMarkerSize: CGSize { get set }
     var delegate: GMSViewManagerDelegate? { get set }
     func attachMap(toView view: UIView,
                           showCurrentLocationIndicator: Bool,
@@ -46,6 +47,7 @@ class GMSViewManagerImpl: NSObject, GMSViewManager {
     private let hasMarker: Bool
     private let markerImage: UIImage?
     private var customMarkerImageView: UIImageView?
+    public var customMarkerSize = CGSize(width: 25, height: 25)
     weak var delegate: GMSViewManagerDelegate?
     
     // MARK: - Initializers
@@ -73,10 +75,7 @@ class GMSViewManagerImpl: NSObject, GMSViewManager {
             mapView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
         ])
         self.mapView = mapView
-        let camera = GMSCameraPosition.camera(withLatitude: self.defaultLocation.latitude,
-                                              longitude: self.defaultLocation.longitude,
-                                              zoom: self.defaultLocation.zoomLevel)
-        self.mapView?.camera = camera
+        self.fallbackToDefaultLocation()
         self.setupCustomMarker()
     }
     
@@ -135,17 +134,25 @@ class GMSViewManagerImpl: NSObject, GMSViewManager {
         self.mapView?.animate(with: .fit(bounds, withPadding: padding))
     }
     
+    // MARK: - Private Functions
+    private func fallbackToDefaultLocation() {
+        self.locationUpdated(withCoordinates: self.defaultLocation.getCLLocation())
+    }
+    
     private func setupCustomMarker() {
         guard self.hasMarker,
         let mapView = self.mapView,
         let markerImage = self.markerImage else { return }
         self.customMarkerImageView = UIImageView(image: markerImage)
+        self.customMarkerImageView?.contentMode = .scaleAspectFit
         self.customMarkerImageView?.translatesAutoresizingMaskIntoConstraints = false
         mapView.addSubview(customMarkerImageView!)
-        self.customMarkerImageView!.widthAnchor.constraint(equalToConstant: 25).isActive = true
-        self.customMarkerImageView!.heightAnchor.constraint(equalToConstant: 25).isActive = true
-        self.customMarkerImageView!.centerXAnchor.constraint(equalTo: mapView.centerXAnchor).isActive = true
-        self.customMarkerImageView!.centerYAnchor.constraint(equalTo: mapView.centerYAnchor).isActive = true
+        NSLayoutConstraint.activate([
+            self.customMarkerImageView!.widthAnchor.constraint(equalToConstant: self.customMarkerSize.width),
+            self.customMarkerImageView!.heightAnchor.constraint(equalToConstant: self.customMarkerSize.height),
+            self.customMarkerImageView!.centerXAnchor.constraint(equalTo: mapView.centerXAnchor),
+            self.customMarkerImageView!.centerYAnchor.constraint(equalTo: mapView.centerYAnchor)
+        ])
     }
 }
 
@@ -153,7 +160,7 @@ class GMSViewManagerImpl: NSObject, GMSViewManager {
 extension GMSViewManagerImpl: GMSManagerLocationServiceDelegate {
     
     public func locationPermissionDenied() {
-        self.locationUpdated(withCoordinates: self.defaultLocation.getCLLocation())
+        self.fallbackToDefaultLocation()
         self.delegate?.locationUpdate(failedWithError: UserLocationPermissionError())
     }
     
@@ -166,7 +173,7 @@ extension GMSViewManagerImpl: GMSManagerLocationServiceDelegate {
     }
     
     public func locationUpdate(failedWithError error: Error) {
-        self.locationUpdated(withCoordinates: self.defaultLocation.getCLLocation())
+        self.fallbackToDefaultLocation()
         self.delegate?.locationUpdate(failedWithError: error)
     }
 }
