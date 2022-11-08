@@ -56,6 +56,8 @@ class GMSViewManagerImpl: NSObject, GMSViewManager {
         self.defaultLocation = defaultLocation
         self.hasMarker = markerImage != nil
         self.markerImage = markerImage
+        super.init()
+        self.locationService.delegate = self
     }
     
     // MARK: - Basic Functionality
