@@ -86,6 +86,7 @@ class GMSViewManagerImpl: NSObject, GMSViewManager {
     }
     
     public func centerMapOnCurrentLocation() {
+        self.delegate?.didBeginLoading()
         self.locationService.requestWhenInUseAuthorization()
         self.locationService.requestLocation()
     }
@@ -164,6 +165,7 @@ extension GMSViewManagerImpl: GMSManagerLocationServiceDelegate {
     public func locationPermissionDenied() {
         self.fallbackToDefaultLocation()
         self.delegate?.locationUpdate(failedWithError: UserLocationPermissionError())
+        self.delegate?.didEndLoading()
     }
     
     public func locationUpdated(withCoordinates coordinates: CLLocation) {
@@ -172,11 +174,13 @@ extension GMSViewManagerImpl: GMSManagerLocationServiceDelegate {
                                               longitude: coordinates.longitude,
                                               zoom: self.defaultLocation.zoomLevel)
         self.mapView?.camera = camera
+        self.delegate?.didEndLoading()
     }
     
     public func locationUpdate(failedWithError error: Error) {
         self.fallbackToDefaultLocation()
         self.delegate?.locationUpdate(failedWithError: error)
+        self.delegate?.didEndLoading()
     }
 }
 

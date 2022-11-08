@@ -9,9 +9,13 @@ public protocol GMSViewManagerDelegate: AnyObject {
     func locationUpdate(failedWithError error: Error)
     func mapView(idleAt position: Coordinates)
     func markerDidTapped(withID id: String)
+    func didBeginLoading()
+    func didEndLoading()
 }
 
 public extension GMSViewManagerDelegate {
     func mapView(idleAt position: Coordinates) {}
     func markerDidTapped(withID id: String) {}
+    func didBeginLoading() {}
+    func didEndLoading() {}
 }
