@@ -1,42 +1,13 @@
+//
+//  File.swift
+//  
+//
+//  Created by Youssef El-Ansary on 18/11/2022.
+//
 
 import UIKit
 import GoogleMaps
 import GooglePlaces
-
-public class GMSManager {
-    
-    public static func provideGMSKey(_ key: String) {
-        GMSServices.provideAPIKey(key)
-    }
-    
-    public static func provideGMSPlacesKey(_ key: String) {
-        GMSPlacesClient.provideAPIKey(key)
-    }
-    
-    public static func viewManagerInstance(defaultLocation: MapPosition,
-                                           markerImage: UIImage?) -> GMSViewManager {
-        return GMSViewManagerImpl(defaultLocation: defaultLocation,
-                                  markerImage: markerImage)
-    }
-}
-
-public protocol GMSViewManager {
-    var customMarkerSize: CGSize { get set }
-    var delegate: GMSViewManagerDelegate? { get set }
-    func attachMap(toView view: UIView,
-                          showCurrentLocationIndicator: Bool,
-                          showLocateMeButton: Bool)
-    func setAccuracy(_ accuracy: LocationAccuracy)
-    func centerMapOnCurrentLocation()
-    func setupLocateMeButtonInsets(_ insets: UIEdgeInsets)
-    func setMapType(_ type: MapType)
-    func configureStyle(fromJSONFile jsonURL: URL) throws
-    func displayAndCenterCustomMarkersOnMap(_ markers: [Marker],
-                                            markersCenteringPadding: Double)
-    func displayCustomMarkersOnMap(_ markers: [Marker])
-    func clearMarkers()
-    func centerMapToShow(coordinates: [Coordinates], padding: CGFloat)
-}
 
 class GMSViewManagerImpl: NSObject, GMSViewManager {
     
