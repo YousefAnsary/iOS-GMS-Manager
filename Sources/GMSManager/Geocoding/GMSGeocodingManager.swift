@@ -9,7 +9,6 @@ import GoogleMaps
 
 public class GMSGeocodingManager {
 
-    public weak var delegate: GMSGeocodingManagerDelegate?
     private let gmsGeocoder: GMSGeocoder
     private let debounceInterval: Double
     private var geocodingWorkItem: DispatchWorkItem?
@@ -19,26 +18,32 @@ public class GMSGeocodingManager {
         self.debounceInterval = debounceInterval
     }
     
-    public func geocode(coordinates: CLLocation) {
+    public func geocode(coordinates: CLLocation,
+                        completion: @escaping (Result<GeocodingData, Error>) -> Void) {
         self.geocodingWorkItem?.cancel()
         self.geocodingWorkItem = DispatchWorkItem(block: { [weak self] in
-            self?.sendGeocodingRequest(coordinates: coordinates)
+            self?.sendGeocodingRequest(coordinates: coordinates,
+                                       completion: completion)
         })
         DispatchQueue.global(qos: .userInitiated).asyncAfter(deadline: .now() + self.debounceInterval,
                                                              execute: geocodingWorkItem!)
     }
     
-    private func sendGeocodingRequest(coordinates: CLLocation) {
+    private func sendGeocodingRequest(coordinates: CLLocation,
+                                      completion: @escaping (Result<GeocodingData, Error>) -> Void) {
         self.gmsGeocoder.reverseGeocodeCoordinate(coordinates.coordinate) { [weak self] (data, err) in
-            guard let data = data,
+            guard let self = self,
+                  let data = data,
                   err == nil else {
-                self?.delegate?.geocoding(failedWithError: err ?? GMSManagerUnknownError()); return
+                completion(.failure(err ?? GMSManagerUnknownError()))
+                return
             }
-            self?.geocodingResponseReceived(data)
+            let geocodingData = self.geocodingResponseReceived(data)
+            completion(.success(geocodingData))
         }
     }
     
-    private func geocodingResponseReceived(_ data: GMSReverseGeocodeResponse) {
+    private func geocodingResponseReceived(_ data: GMSReverseGeocodeResponse) -> GeocodingData {
         let coordinates = data.firstResult()?.coordinate
         let country = data.firstResult()?.country
         let state = data.firstResult()?.administrativeArea
@@ -49,14 +54,13 @@ public class GMSGeocodingManager {
         let zipCode = data.firstResult()?.postalCode
         let coordinate = Coordinates(latitude: coordinates?.latitude,
                                      longitude: coordinates?.longitude)
-        let data = GeocodingData(coordinates: coordinate,
-                                 country: country,
-                                 state: state,
-                                 city: city,
-                                 district: district,
-                                 streetName: streetName,
-                                 addresses: addresses,
-                                 zipCode: zipCode)
-        self.delegate?.geocoding(succeedWithData: data)
+        return GeocodingData(coordinates: coordinate,
+                             country: country,
+                             state: state,
+                             city: city,
+                             district: district,
+                             streetName: streetName,
+                             addresses: addresses,
+                             zipCode: zipCode)
     }
 }
