@@ -29,7 +29,7 @@ Swift Package to help managing Google Maps Views in your app
 **Swift Package Manager**
 
 ```
-.package(url: "https://github.com/YousefAnsary/iOS-GMS-Manager.git", from: "0.5.0")
+.package(url: "https://github.com/YousefAnsary/iOS-GMS-Manager.git", from: "0.5.1")
 ```
 
 ----
@@ -43,8 +43,8 @@ Swift Package to help managing Google Maps Views in your app
 
 func application(_ application: UIApplication,
                  didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil) -> Bool {
-                 GMSManager.provideGMSKey("YOUR_KEY")
-                 GMSManager.provideGMSPlacesKey("YOUR_KEY") // If you will use places services
+                    GMSManager.provideGMSKey("YOUR_KEY")
+                    GMSManager.provideGMSPlacesKey("YOUR_KEY") // If you will use places services
 }
 ```
 <br/>
@@ -52,8 +52,8 @@ func application(_ application: UIApplication,
 3- In the controller you need a map view, just put a UIView with the right constraints so we can attach the map view to it by calling following function and passing the default coordinates that map starts on and fallbacks to it if current location fetch failed when demanded, also you can pass a UIImage to be used as custom center marker if needed, nil otherwise
 ```
 let defaultLocation = MapPosition(latitude: Double, longitude: Double, zoomLevel: Float)
-let mapManager = GMSManager.GMSManager(defaultLocation: defaultLocation, 
-                                       markerImage: nil)
+let mapManager = GMSManager.viewManagerInstance(defaultLocation: defaultLocation, 
+                                                markerImage: nil)
 // in viewDidLoad
 mapManager.attachMap(toView: myMapContainerView,
                      showCurrentLocationIndicator: true,
@@ -61,7 +61,7 @@ mapManager.attachMap(toView: myMapContainerView,
 ```
 <br/>
 
-4- use you mapManager instance to manage the style and the functionalities of your map, find its protocol below
+4- use your mapManager instance to manage the style and the functionalities of your map, find its protocol below
 ```
 public protocol GMSViewManager {
     var customMarkerSize: CGSize { get set }
@@ -93,21 +93,73 @@ public protocol GMSViewManagerDelegate: AnyObject {
 ```
 
 ----
-<br/>
+
 ### Places Search Manager Usage
 
-1- You must have provide places service key as mentioned in first step
+1- You must provide places service key as mentioned in first step <br/>
 2- Initialize your instance passing the debounce interval before firing the request in seconds
 (When user stops typing for X second request will be sent)
 ```
 let placesSearchManager = GMSPlacesSearchService(debounceInterval: 0.5)
+```
+3- Search for suggestions related to sepcific keyword/user input
+```
 // Inside your Search Field delegate or where ever you want to start searching
 placesSearchManager.search(for: "Your-Search-Keyword",
                            restrictingToCountries: ["au", "nz"], // nil by default (not restricted)
-                           completion: { [weak self] Result<[GMSSearchPrediction], Error> in 
-                              
+                           completion: { [weak self] (res: Result<[GMSSearchPrediction], Error>) in 
+                               switch res {
+                                  case .success(let results):
+                                     print(results.map { $0.attributedFullText.string })
+                                  case .failure(let error):
+                                     print(error)
+                               }
                            })
 ```
+4- To fetch more details about one of the fetched suggestion (on user click for example)
+```
+placesSearchManager.fetchDetails(forPlace: myPrediction,
+                                 completion: { [weak self] (res: Result<GMSSearchResult, Error>) in 
+                                     switch res {
+                                       case .success(let result):
+                                         print(result.coordinate) // .name || .phoneNumber , ...
+                                       case .failure(let error):
+                                         print(error)
+                                     }
+                                 })
+```
 ----
-<br/>
+
 ### Geocoding Manager Usage
+1- You must provide service key as mentioned in first step <br/>
+2- Initialize your instance passing the debounce interval before firing the request in seconds
+(When user stops typing for X second request will be sent)
+```
+let geocodongManager = GMSGeocodingManager(debounceInterval: 0.5)
+```
+3- Start geocoding by pass your coordinates 
+```
+geocodongManager.geocode(coordinates: myCLLocation,
+                         completion: { [weak self] (res: Result<GeocodingData, Error>) in 
+                            switch res {
+                               case .success(let result):
+                                   print(result)
+                               case .failure(let error):
+                                   print(error)
+                            }
+                         })
+```
+----
+```
+public struct GeocodingData {
+    public let coordinates: Coordinates?
+    public let country: String?
+    public let state: String?
+    public let city: String?
+    public let district: String?
+    public let streetName: String?
+    public let addresses: [String]?
+    public let zipCode: String?
+}
+```
+----
